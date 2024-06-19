@@ -1,10 +1,16 @@
-import re
 import xml.etree.ElementTree as ET
-from const import *
-import pprint
 
+from itertools import groupby
+from operator import itemgetter
+
+from function import *
+from const import *
 
 def xmlToList( group, date):
+
+    group = convert_to_group(group)
+    date = convert_to_date(date)
+
     root = ET.fromstring(response(group, date))
 
     namespaces = {
@@ -27,21 +33,25 @@ def xmlToList( group, date):
     
         result.append(entry)
 
+    result.sort(key=itemgetter('date'))
+
+    grouped_data = {k: list(v) for k, v in groupby(result, key=itemgetter('date'))}
+    sorted_data = sorted(grouped_data.get(date), key=lambda x: int(x['lesson']))
+
     array = []
-    for item in result:
+    for item in sorted_data:
         array.append('''
-Урок № {lesson}
-Дата: {date}
-Предмет: {subject}
-Кабинет: {cabinet}
-Корпус: {departament}
-Учитель: {teacher}'''.format(lesson = item['lesson'], date = item['date'], subject = item['subject'], cabinet = item['cabinet'], departament = item['departament'], teacher = item['teacher']))
+<b>Урок №:</b> <i>{lesson}</i>
+<b>Предмет:</b> {subject}
+<b>Кабинет:</b> {cabinet}
+<b>Корпус:</b> {departament}
+<b>Учитель:</b> {teacher}
+'''.format(lesson = item['lesson'], subject = item['subject'], cabinet = item['cabinet'], departament = item['departament'], teacher = item['teacher']))
+
+    res = ''
+    for i in range(len(array)):
+        res += array[i]
+
+    return res
 
 
-
-
-    
-    return array
-
-
-test = xmlToList( 'ИС 1.23', '22.11.2023')

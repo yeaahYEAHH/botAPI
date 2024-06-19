@@ -1,62 +1,58 @@
 import re 
-def formatingDate(inputDate):
-    pattern = re.search(r'\d+', inputDate)
-    cleanedString = pattern.sub('', inputString)
-
-
-
-
-
-def formatingGroup(inputString):
-	pattern = re.compile(r'[^a-zA-Zа-яА-Я0-9]')
-
-	cleanedString = pattern.sub('', inputString)
-	while cleanedString and not cleanedString[0].isalpha():
-		cleanedString = cleanedString[1:]
-	
-	return cleanedString.upper()
-
-list = ['zIZ;|bUnSXm3',
- ']}oa:z5!+YxE',
- 'wjbD(4qu]_m$',
- 'z^<8PjB80\\tS',
- '"G;l-a_%ps,4',
- 'mY{!W-JmL*Z3',
- "fgUbn71DE['[",
- ',(z?c31{/b[V',
- '{`b,4PM:AU-9',
- '6OkjIVea8tw=']
-
 from datetime import datetime
+from datetime import timedelta
 
-now = datetime.now()
+# Функция для преобразования даты в формат ДД.ММ.ГГГГ
+def convert_to_date(date_str):
+    # Определяем шаблоны для различных форматов дат
+    date_patterns = [
+        (r'(\d{1,2})[ /.](\d{1,2})[ /.](\d{2,4})', '%d.%m.%Y')  # шаблон для различных разделителей
+    ]
+    
+    for pattern, date_format in date_patterns:
+        match = re.match(pattern, date_str)
+        if match:
+            day, month, year = match.groups()
+            
+            # Приводим год к формату ГГГГ
+            if len(year) == 2:
+                year = '20' + year
+            
+            # Создаем объект даты
+            date_obj = datetime.strptime(f"{day}.{month}.{year}", '%d.%m.%Y')
+            # Возвращаем строку в формате ДД.ММ.ГГГГ
+            return date_obj.strftime('%d.%m.%Y')
+    
+    # Если формат даты не распознан, возвращаем исходную строку (или можно бросить исключение)
+    return date_str
 
-for item in list:
 
-    pattern = re.search(r'\d+', item)
-    cleanedString = pattern[0]
-    lengthString = len(cleanedString)
-    if lengthString in [1, 2]:
-        cleanedString = if int(cleanedString)
-        formatted_date_time = now.strftime(".%m.%Y")
-        print('0' + str(cleanedString))
+# Функция для преобразования группы в формату ИС 1.20
+def convert_to_group(input_string):
+    # Регулярное выражение для удаления всех спецсимволов, кроме букв и цифр
+    pattern = re.compile(r'[^a-zA-Zа-яА-Я0-9]')
+    # Замена всех найденных символов на пустую строку
+    cleaned_string = pattern.sub('', input_string)
+    # Проверка и удаление первых символов, если они не буквы
+    while cleaned_string and not cleaned_string[0].isalpha():
+        cleaned_string = cleaned_string[1:]
 
-    # if lengthString in [3, 4]:
+    return (cleaned_string[:2] + ' ' + cleaned_string[2] + '.' + cleaned_string[-2:]).upper()
 
-    # if lengthString in [6, 8]:
+#Увелечение дня
+def increment_date(date):
+    date = convert_to_date(date)
+    date_obj = datetime.strptime(date, "%d.%m.%Y")
+    date_obj = date_obj + timedelta(days=1)
+    date_str = date_obj.strftime("%d.%m.%Y")
 
+    return date_str
 
+#Уменьшение дня 
+def deincrement_date(date):
+    date = convert_to_date(date)
+    date_obj = datetime.strptime(date, "%d.%m.%Y")
+    date_obj = date_obj - timedelta(days=1)
+    date_str = date_obj.strftime("%d.%m.%Y")
 
-
-
-# # Форматирование даты и времени
-
-# print("Форматированная дата и время:", formatted_date_time)
-
-# # Форматирование только даты
-# formatted_date = now.strftime("%Y-%m-%d")
-# print("Форматированная дата:", formatted_date)
-
-# # Форматирование только времени
-# formatted_time = now.strftime("%H:%M:%S")
-# print("Форматированное время:", formatted_time)
+    return date_str
