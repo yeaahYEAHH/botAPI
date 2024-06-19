@@ -6,16 +6,7 @@ from const import token
 
 bot = telebot.TeleBot(token)
 
-# Удаление спец.символов из строки для группы
-def remove_special_characters(input_string):
-	# Регулярное выражение для удаления всех спецсимволов, кроме букв и цифр
-	pattern = re.compile(r'[^a-zA-Zа-яА-Я0-9]')
-	# Замена всех найденных символов на пустую строку
-	cleaned_string = pattern.sub('', input_string)
-	while cleaned_string and not cleaned_string[0].isalpha():
-		cleaned_string = cleaned_string[1:]
-	
-	return cleaned_string.upper()
+
 
 
 
