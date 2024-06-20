@@ -8,8 +8,8 @@ from const import *
 
 def xmlToList( group, date):
 
-    group = convert_to_group(group)
-    date = convert_to_date(date)
+    # group = convert_to_group(group)
+    # date = convert_to_date(date)
 
     root = ET.fromstring(response(group, date))
 
@@ -36,22 +36,44 @@ def xmlToList( group, date):
     result.sort(key=itemgetter('date'))
 
     grouped_data = {k: list(v) for k, v in groupby(result, key=itemgetter('date'))}
-    sorted_data = sorted(grouped_data.get(date), key=lambda x: int(x['lesson']))
+    # grouped_data.get(date) = grouped_data.get(date) if 
+#     sorted_data = sorted(, key=lambda x: int(x['lesson']))
 
-    array = []
-    for item in sorted_data:
-        array.append('''
-<b>Урок №:</b> <i>{lesson}</i>
-<b>Предмет:</b> {subject}
-<b>Кабинет:</b> {cabinet}
-<b>Корпус:</b> {departament}
-<b>Учитель:</b> {teacher}
+#     array = []
+#     for item in sorted_data:
+#         array.append('''
+# <b>Урок №:</b> <i>{lesson}</i>
+# <b>Предмет:</b> {subject}
+# <b>Кабинет:</b> {cabinet}
+# <b>Корпус:</b> {departament}
+# <b>Учитель:</b> {teacher}
+# '''.format(lesson = item['lesson'], subject = item['subject'], cabinet = item['cabinet'], departament = item['departament'], teacher = item['teacher']))
+
+#     res = ''
+#     for i in range(len(array)):
+#         res += array[i]
+
+    try: 
+        sorted_data = sorted(grouped_data.get(date), key=lambda x: int(x['lesson']))
+
+        array = []
+        for item in sorted_data:
+            array.append('''
+    📋 <b>Урок №:</b> <i>{lesson}</i>
+● <b>Предмет:</b> {subject}
+● <b>Кабинет:</b> {cabinet}
+● <b>Корпус:</b> {departament}
+● <b>Учитель:</b> {teacher}
 '''.format(lesson = item['lesson'], subject = item['subject'], cabinet = item['cabinet'], departament = item['departament'], teacher = item['teacher']))
 
-    res = ''
-    for i in range(len(array)):
-        res += array[i]
+        res = ''
+        for i in range(len(array)):
+            res += array[i]
+
+    except:
+        res = '\n<code>Нет занятий</code>'
 
     return res
 
 
+# print(xmlToList('ИС 1.23', '16.06.2024'))

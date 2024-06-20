@@ -41,7 +41,6 @@ def convert_to_group(input_string):
 
 #Увелечение дня
 def increment_date(date):
-    date = convert_to_date(date)
     date_obj = datetime.strptime(date, "%d.%m.%Y")
     date_obj = date_obj + timedelta(days=1)
     date_str = date_obj.strftime("%d.%m.%Y")
@@ -50,7 +49,6 @@ def increment_date(date):
 
 #Уменьшение дня 
 def deincrement_date(date):
-    date = convert_to_date(date)
     date_obj = datetime.strptime(date, "%d.%m.%Y")
     date_obj = date_obj - timedelta(days=1)
     date_str = date_obj.strftime("%d.%m.%Y")

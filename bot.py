@@ -6,87 +6,53 @@ from const import token
 from function import *
 
 bot = telebot.TeleBot(token)
-
-# def renderBtnDay( ):
-#     keyBoard = types.InlineKeyboardMarkup(row_width = 2)
-#     btnPrevDay = types.InlineKeyboardButton(text='Предыдущий день', callback_data='prevDay')
-#     btnNextDay = types.InlineKeyboardButton(text = 'Следующий день', callback_data = 'nextDay')
-#     keyBoard.add(btnPrevDay, btnNextDay)
-
-#     return keyBoard
-
-# @bot.message_handler(commands=['start'])
-# def start(message):
-#     bot.send_message(message.chat.id, '<b>Дата</b> [текущая дата] | <b>Группа</b> [текущая группа]', parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-# @bot.callback_query_handler(func = lambda callback : callback.data)
-# def checkCallBack(callback):
-#     if callback.data == 'prevDay':
-#         bot.edit_message_text(chat_id=callback.message.chat.id, message_id = callback.message.id, text = '<b>Дата</b> [предыдущая дата] | <b>Группа</b> [текущая группа]', parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-#     if callback.data == 'nextDay':
-#         bot.edit_message_text(chat_id=callback.message.chat.id, message_id = callback.message.id, text = '<b>Дата</b> [следующая дата] | <b>Группа</b> [текущая группа]', parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-# array = []
-
-# @bot.message_handler(commands=['get'])
-# def group(message):
-# 	message_bot = bot.send_message(message.chat.id,'Группа')
-# 	bot.register_next_step_handler(message_bot, date)
-
-
-# def date(message):
-# 	array.append(message.text)
-# 	start = bot.send_message(message.chat.id,'Дату')
-# 	bot.register_next_step_handler(start, alert)
-
-# def alert(message):
-# 	array.append(message.text)
-# 	[group, date] = array
-# 	listing = xmlToList(group, date)
-# 	bot.send_message(message.chat.id, listing, parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-# @bot.callback_query_handler(func = lambda callback : callback.data)
-# def checkCallBack(callback):
-# 	[group, date] = array
-# 	if callback.data == 'prevDay':
-# 		bot.edit_message_text(chat_id=callback.message.chat.id, message_id = callback.message.id, text = xmlToList(group,deincrement_date(date)), parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-# 	if callback.data == 'nextDay':
-# 		bot.edit_message_text(chat_id=callback.message.chat.id, message_id = callback.message.id, text = xmlToList(group,increment_date(date)), parse_mode = 'HTML', reply_markup = renderBtnDay())
-
-# bot.polling()
-
-
 # Хранилище для счетчиков
 counters = {}
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
+def welcome(message):
+	bot.send_message(message.chat.id, '<i>Привет!</i> 👋\n\n<b>Я помогу тебе узнать расписание на нужную дату 📝</b>\n\nДля дальнейшей работы напиши <code>/get</code>', parse_mode='HTML')
+
+@bot.message_handler(commands=['get'])
+def get(message):
 	chat_id = message.chat.id
-	counters[chat_id] = '19.05.24'  # Инициализируем счетчик для каждого пользователя
+	counters[chat_id] = [] 
+	message_bot = bot.send_message(message.chat.id,"👥 Введи <b>Группу</b> с разделительным знаком\n\nНапример: <code>ИС 1.20</code>", parse_mode='HTML')
+	bot.register_next_step_handler(message_bot, date)
 
-	markup = create_counter_markup(chat_id)
-	bot.send_message(chat_id, f'Счетчик: {counters[chat_id]}', reply_markup=markup)
+def date(message):
+	chat_id = message.chat.id
+	counters[chat_id].append(convert_to_group(message.text))
+	message_bot = bot.send_message(message.chat.id,"📅 Введи <b>Дату</b> с разделительными(пробелы, точки, слэши) знаками. Указать нужно в формате: <code>ДД.ММ.ГГ</code>\n\nНапример: <code>17.06.24</code>", parse_mode='HTML')
+	bot.register_next_step_handler(message_bot, alert)
 
-def create_counter_markup(chat_id):
+def create_markup(chat_id):
 	markup = InlineKeyboardMarkup()
-	increment_button = InlineKeyboardButton('Следующий день', callback_data=f'increment_{chat_id}')
-	decrement_button = InlineKeyboardButton('Предыдущий', callback_data=f'decrement_{chat_id}')
-	markup.add(increment_button, decrement_button)
+	decrement_button = InlineKeyboardButton('<', callback_data=f'decrement_{chat_id}')
+	increment_button = InlineKeyboardButton('>', callback_data=f'increment_{chat_id}')
+	markup.add(decrement_button, increment_button)
+
 	return markup
+
+def alert(message):
+	chat_id = message.chat.id
+	counters[chat_id].append(convert_to_date(message.text))
+	markup = create_markup(chat_id)
+	listing = xmlToList(counters[chat_id][0], counters[chat_id][1])
+	
+	bot.send_message(message.chat.id, f'		🗓 <b>Дата</b> <i>{counters[chat_id][1]}</i>\n{listing}', parse_mode = 'HTML', reply_markup = markup)
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
 	chat_id = call.message.chat.id
+	markup = create_markup(chat_id)
+	
 	if f'increment_{chat_id}' in call.data:
-		counters[chat_id] = increment_date(counters[chat_id])
+		counters[chat_id][1] = increment_date(counters[chat_id][1])
 	elif f'decrement_{chat_id}' in call.data:
-		counters[chat_id] = deincrement_date(counters[chat_id])
+		counters[chat_id][1] = deincrement_date(counters[chat_id][1])
 
-	markup = create_counter_markup(chat_id)
-	print(counters)
-	bot.edit_message_text(f'Счетчик: {counters[chat_id]}', chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup)
+	listing = xmlToList(counters[chat_id][0], counters[chat_id][1])
+	bot.edit_message_text(f'		🗓 <b>Дата</b> <i>{counters[chat_id][1]}</i>\n{listing}', chat_id=chat_id, message_id=call.message.message_id,parse_mode = 'HTML', reply_markup=markup)
 
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+bot.polling()
