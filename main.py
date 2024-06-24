@@ -19,6 +19,9 @@ def xmlToList( group, date):
         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     }
 
+    if(root.find('.//ns0:Fault', namespaces)):
+        return '⚠ Ошибка: <code>Неправильная дата</code> \n\nНапишите повторно /get'
+
     result = []
     for tab in root.findall('.//ns1:Tab', namespaces=namespaces):
         entry = {
@@ -36,23 +39,7 @@ def xmlToList( group, date):
     result.sort(key=itemgetter('date'))
 
     grouped_data = {k: list(v) for k, v in groupby(result, key=itemgetter('date'))}
-    # grouped_data.get(date) = grouped_data.get(date) if 
-#     sorted_data = sorted(, key=lambda x: int(x['lesson']))
-
-#     array = []
-#     for item in sorted_data:
-#         array.append('''
-# <b>Урок №:</b> <i>{lesson}</i>
-# <b>Предмет:</b> {subject}
-# <b>Кабинет:</b> {cabinet}
-# <b>Корпус:</b> {departament}
-# <b>Учитель:</b> {teacher}
-# '''.format(lesson = item['lesson'], subject = item['subject'], cabinet = item['cabinet'], departament = item['departament'], teacher = item['teacher']))
-
-#     res = ''
-#     for i in range(len(array)):
-#         res += array[i]
-
+    
     try: 
         sorted_data = sorted(grouped_data.get(date), key=lambda x: int(x['lesson']))
 
@@ -73,7 +60,11 @@ def xmlToList( group, date):
     except:
         res = '\n<code>Нет занятий</code>'
 
-    return res
+    return f'''
+📅 <b>Дата</b> <i>{date}</i>
+    
+    👥 <b>Группа</b> <i>{group}</i>
+    {res}'''
 
 
-# print(xmlToList('ИС 1.23', '16.06.2024'))
+xmlToList('ИС 1.23', '17.06.2024')

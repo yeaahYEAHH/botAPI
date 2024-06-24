@@ -11,7 +11,7 @@ counters = {}
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
-	bot.send_message(message.chat.id, '<i>Привет!</i> 👋\n\n<b>Я помогу тебе узнать расписание на нужную дату 📝</b>\n\nДля дальнейшей работы напиши <code>/get</code>', parse_mode='HTML')
+	bot.send_message(message.chat.id, '<i>Привет!</i> 👋\n\n<b>Я помогу тебе узнать расписание на нужную дату 📝</b>\n\nДля дальнейшей работы напиши /get', parse_mode='HTML')
 
 @bot.message_handler(commands=['get'])
 def get(message):
@@ -40,19 +40,25 @@ def alert(message):
 	markup = create_markup(chat_id)
 	listing = xmlToList(counters[chat_id][0], counters[chat_id][1])
 	
-	bot.send_message(message.chat.id, f'		🗓 <b>Дата</b> <i>{counters[chat_id][1]}</i>\n{listing}', parse_mode = 'HTML', reply_markup = markup)
+	bot.send_message(message.chat.id, listing, parse_mode = 'HTML', reply_markup = markup)
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
 	chat_id = call.message.chat.id
 	markup = create_markup(chat_id)
 	
-	if f'increment_{chat_id}' in call.data:
-		counters[chat_id][1] = increment_date(counters[chat_id][1])
-	elif f'decrement_{chat_id}' in call.data:
-		counters[chat_id][1] = deincrement_date(counters[chat_id][1])
+	try:
+		if f'increment_{chat_id}' in call.data:
+			counters[chat_id][1] = increment_date(counters[chat_id][1])
+		elif f'decrement_{chat_id}' in call.data:
+			counters[chat_id][1] = deincrement_date(counters[chat_id][1])
 
-	listing = xmlToList(counters[chat_id][0], counters[chat_id][1])
-	bot.edit_message_text(f'		🗓 <b>Дата</b> <i>{counters[chat_id][1]}</i>\n{listing}', chat_id=chat_id, message_id=call.message.message_id,parse_mode = 'HTML', reply_markup=markup)
+		listing = xmlToList(counters[chat_id][0], counters[chat_id][1])
+		bot.edit_message_text(listing, chat_id=chat_id, message_id=call.message.message_id,parse_mode = 'HTML', reply_markup=markup)
+
+	except:
+		bot.send_message(call.message.chat.id, '⚠ Ошибка: <code>Неправильная дата</code> \n\nНапишите повторно /get', parse_mode = 'HTML')
+
+
 
 bot.polling()
